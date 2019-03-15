@@ -120,6 +120,7 @@
       <AdditionalDependencies>Ws2_32.lib;%(AdditionalDependencies)</AdditionalDependencies>
       <ModuleDefinitionFile>
       </ModuleDefinitionFile>
+      <ImportLibrary>$(OutDir)$(TargetName).dll.lib</ImportLibrary>
     </Link>
     <PostBuildEvent>
       <Command>
@@ -144,6 +145,7 @@
       <AdditionalDependencies>Ws2_32.lib;%(AdditionalDependencies)</AdditionalDependencies>
       <ModuleDefinitionFile>
       </ModuleDefinitionFile>
+      <ImportLibrary>$(OutDir)$(TargetName).dll.lib</ImportLibrary>
     </Link>
     <PostBuildEvent>
       <Command>
@@ -173,6 +175,7 @@
       <AdditionalDependencies>Ws2_32.lib;%(AdditionalDependencies)</AdditionalDependencies>
       <ModuleDefinitionFile>
       </ModuleDefinitionFile>
+      <ImportLibrary>$(OutDir)$(TargetName).dll.lib</ImportLibrary>
     </Link>
     <PostBuildEvent>
       <Command>
@@ -202,6 +205,7 @@
       <AdditionalDependencies>Ws2_32.lib;%(AdditionalDependencies)</AdditionalDependencies>
       <ModuleDefinitionFile>
       </ModuleDefinitionFile>
+      <ImportLibrary>$(OutDir)$(TargetName).dll.lib</ImportLibrary>
     </Link>
     <PostBuildEvent>
       <Command>
