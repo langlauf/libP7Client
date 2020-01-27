@@ -1,6 +1,6 @@
 ////////////////////////////////////////////////////////////////////////////////
 //                                                                             /
-// 2012-2019 (c) Baical                                                        /
+// 2012-2020 (c) Baical                                                        /
 //                                                                             /
 // This library is free software; you can redistribute it and/or               /
 // modify it under the terms of the GNU Lesser General Public                  /
@@ -546,7 +546,7 @@ eClient_Status CClFile::Create_File()
     {
         PSPrint(l_pFile_Name, 
                 LENGTH(l_pFile_Name), 
-                TM("/%04d%02d%02d-%02d%02d%02d%03d.") P7_EXT,
+                TM("/%04d%02d%02d-%02d%02d%02d.%03d.") P7_EXT,
                 l_dwYear, 
                 l_dwMonth,
                 l_dwDay,
@@ -853,7 +853,6 @@ eClient_Status CClFile::Sent(tUINT32          i_dwChannel_ID,
                         m_cBuffer_Ready.Add_After(m_cBuffer_Ready.Get_Last(), 
                                                   m_pBuffer_Current
                                                  );
-                        m_qwFile_Size    += m_pBuffer_Current->szUsed;
                         m_pBuffer_Current = NULL;
                         m_cEvent.Set(THREAD_DATA_SIGNAL);
                     }
@@ -873,7 +872,6 @@ eClient_Status CClFile::Sent(tUINT32          i_dwChannel_ID,
                 m_cBuffer_Ready.Add_After(m_cBuffer_Ready.Get_Last(), 
                                           m_pBuffer_Current
                                          );
-                m_qwFile_Size    += m_pBuffer_Current->szUsed;
                 m_pBuffer_Current = NULL;
                 m_cEvent.Set(THREAD_DATA_SIGNAL);
             }
@@ -924,16 +922,19 @@ tBOOL CClFile::Flush()
     l_sStatus.bConnected = FALSE;
     l_sStatus.dwResets   = 0;
 
-    LOCK_ENTER(m_hCS_Reg);
-    for (tUINT32 l_dwI = 0; l_dwI < USER_PACKET_CHANNEL_ID_MAX_SIZE; l_dwI++)
+    if (m_bFlushChannels)
     {
-        if (m_pChannels[l_dwI])
+        LOCK_ENTER(m_hCS_Reg);
+        for (tUINT32 l_dwI = 0; l_dwI < USER_PACKET_CHANNEL_ID_MAX_SIZE; l_dwI++)
         {
-            m_pChannels[l_dwI]->On_Flush(l_dwI, &l_bStack_Trace);
-            m_pChannels[l_dwI]->On_Status(l_dwI, &l_sStatus);
+            if (m_pChannels[l_dwI])
+            {
+                m_pChannels[l_dwI]->On_Flush(l_dwI, &l_bStack_Trace);
+                m_pChannels[l_dwI]->On_Status(l_dwI, &l_sStatus);
+            }
         }
+        LOCK_EXIT(m_hCS_Reg);
     }
-    LOCK_EXIT(m_hCS_Reg);
 
     m_cEvent.Set(THREAD_EXIT_SIGNAL);
 
@@ -1227,6 +1228,11 @@ void CClFile::Routine()
                     l_pBuffer = m_cBuffer_Ready.Get_Data(l_pEl);
                     m_cBuffer_Ready.Del(l_pEl, FALSE);
                 }
+                else
+                {
+                    l_pBuffer = m_pBuffer_Current;
+                    m_pBuffer_Current = 0;
+                }
             }
 
             LOCK_EXIT(m_hCS); 
@@ -1235,6 +1241,8 @@ void CClFile::Routine()
             //writing data
             if (l_pBuffer)
             {
+                m_qwFile_Size += l_pBuffer->szUsed;
+
                 if (    (m_bConnected)
                      && (l_pBuffer->szUsed > m_cFile.Write(l_pBuffer->pBuffer,
                                                            l_pBuffer->szUsed, 
