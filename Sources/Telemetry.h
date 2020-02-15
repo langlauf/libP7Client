@@ -127,6 +127,7 @@ class CP7Telemetry
     tLOCK                   m_sCS; 
                            
     sP7Tel_Info             m_sHeader_Info;
+    sP7Tel_Utc_Offs_V2      m_sHeader_Utc;
     sP7Tel_Value_v2         m_sValue;
                            
     CCounters_Tree          m_cCounters_Map;

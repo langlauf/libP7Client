@@ -264,6 +264,7 @@ CP7Telemetry::CP7Telemetry(IP7_Client *i_pClient, const tXCHAR *i_pName, const s
     LOCK_CREATE(m_sCS);
 
     memset(&m_sHeader_Info, 0, sizeof(m_sHeader_Info));
+    memset(&m_sHeader_Utc, 0, sizeof(m_sHeader_Utc));
     memset(&m_sValue, 0, sizeof(m_sValue));
 
     m_pChunks = new sP7C_Data_Chunk[m_dwChunks_Max_Count];  
@@ -318,7 +319,10 @@ CP7Telemetry::CP7Telemetry(IP7_Client *i_pClient, const tXCHAR *i_pName, const s
     
         GetEpochTime(&m_sHeader_Info.dwTime_Hi, &m_sHeader_Info.dwTime_Lo);
 
-        m_sHeader_Info.qwFlags   = 0;
+        m_sHeader_Info.qwFlags = P7TELEMETRY_FLAG_TIME_ZONE | P7TELEMETRY_FLAG_EXTENTION;
+
+        INIT_EXT_HEADER(m_sHeader_Utc.sCommonRaw, EP7USER_TYPE_TELEMETRY_V2, EP7TEL_TYPE_UTC_OFFS, sizeof(sP7Tel_Utc_Offs_V2));
+        m_sHeader_Utc.iUtcOffsetSec = GetUtcOffsetSeconds();
 
         INIT_EXT_HEADER(m_sValue.sCommonRaw, EP7USER_TYPE_TELEMETRY_V2, EP7TEL_TYPE_VALUE, sizeof(sP7Tel_Value_v2));
         //m_sValue.sCommon.dwSize         = sizeof(sP7Tel_Value); 
@@ -664,6 +668,11 @@ tBOOL CP7Telemetry::Create(const tXCHAR *i_pName,
             l_pChunk->pData  = &m_sHeader_Info;
             l_dwSize        += l_pChunk->dwSize;
             l_pChunk ++;
+
+            l_pChunk->dwSize = sizeof(m_sHeader_Utc);
+            l_pChunk->pData  = &m_sHeader_Utc;
+            l_dwSize        += l_pChunk->dwSize;
+            l_pChunk ++;
         }
 
         l_pChunk->pData  = l_pCounter->m_pHeader;
@@ -773,11 +782,16 @@ tBOOL CP7Telemetry::Add(tUINT16 i_bID, tDOUBLE i_dbValue)
     //connection was lost, we need to resend initial data 
     if (!m_bIsHeaderDelivered)
     {
-        l_bReset          |= RESET_FLAG_HEADER;
-        l_pChunk->dwSize   = sizeof(m_sHeader_Info);
-        l_pChunk->pData    = &m_sHeader_Info;
-        l_dwSize          += l_pChunk->dwSize;
+        l_bReset         |= RESET_FLAG_HEADER;
+        l_pChunk->dwSize  = sizeof(m_sHeader_Info);
+        l_pChunk->pData   = &m_sHeader_Info;
+        l_dwSize         += l_pChunk->dwSize;
         l_pChunk ++;
+
+        l_pChunk->dwSize  = sizeof(m_sHeader_Utc);
+        l_pChunk->pData   = &m_sHeader_Utc;
+        l_dwSize         += l_pChunk->dwSize;
+        l_pChunk ++;     
     }
 
     //counters descriptions have to send again
@@ -1039,11 +1053,19 @@ void CP7Telemetry::OnConnect_Routine()
         {
             if (!m_bIsHeaderDelivered)
             {
-                sP7C_Data_Chunk  l_stChunk;
-                l_stChunk.dwSize = sizeof(m_sHeader_Info);
-                l_stChunk.pData  = &m_sHeader_Info;
+                sP7C_Data_Chunk  l_stChunk[2];
+                l_stChunk[0].dwSize = sizeof(m_sHeader_Info);
+                l_stChunk[0].pData  = &m_sHeader_Info;
 
-                if (ECLIENT_STATUS_OK == m_pClient->Sent(m_dwChannel_ID, &l_stChunk, 1, l_stChunk.dwSize))
+                l_stChunk[1].dwSize = sizeof(m_sHeader_Utc);
+                l_stChunk[1].pData  = &m_sHeader_Utc;
+
+                if (ECLIENT_STATUS_OK == m_pClient->Sent(m_dwChannel_ID, 
+                                                         l_stChunk, 
+                                                         LENGTH(l_stChunk), 
+                                                         l_stChunk[0].dwSize + l_stChunk[1].dwSize
+                                                        )
+                   )
                 {
                     m_bIsHeaderDelivered = TRUE;
                 }

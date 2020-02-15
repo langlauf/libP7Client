@@ -46,6 +46,11 @@
 #define P7TRACE_INFO_FLAG_BIG_ENDIAN                                    (0x0001)
 #define P7TRACE_INFO_FLAG_UNSORTED                                      (0x0002)
 #define P7TRACE_INFO_FLAG_EXTENTION                                     (0x0004)
+#define P7TRACE_INFO_FLAG_TIME_ZONE                                     (0x0008)
+
+#define P7TELEMETRY_FLAG_EXTENTION                                      (0x0001)
+#define P7TELEMETRY_FLAG_TIME_ZONE                                      (0x0002)
+
 
 enum eTrace_Arg_Type
 {
@@ -105,6 +110,7 @@ enum eP7Trace_Type
     EP7TRACE_TYPE_THREAD_STOP       , //Client->Server
     EP7TRACE_TYPE_MODULE            , //Client->Server
     EP7TRACE_TYPE_DELETE            , //Server->Client
+    EP7TRACE_TYPE_UTC_OFFS          , //Client->Server
 
     EP7TRACE_TYPE_MAX           = 32 
 };
@@ -126,6 +132,7 @@ enum eP7Tel_Type
     EP7TEL_TYPE_ENABLE              , //Server->Client
     EP7TEL_TYPE_CLOSE               , //Client->Server
     EP7TEL_TYPE_DELETE              , //Server->Client
+    EP7TEL_TYPE_UTC_OFFS            , //Client->Server
 
     EP7TEL_TYPE_MAX             = 32 
 };
@@ -335,6 +342,17 @@ struct sP7Trace_Module
 } ATTR_PACK(2);
 
 
+//Time zone description
+struct sP7Trace_Utc_Offs
+{
+    union
+    {
+        sP7Ext_Header sCommon;
+        sP7Ext_Raw    sCommonRaw;
+    };
+    tINT32       iUtcOffsetSec; 
+} ATTR_PACK(2);
+
 ////////////////////////////////////////////////////////////////////////////////
 //                             Telemetry                                      //
 ////////////////////////////////////////////////////////////////////////////////
@@ -450,6 +468,18 @@ struct sP7Tel_Value_v2
     tUINT16       wSeqN; 
     tUINT64       qwTimer;      //High resolution timer value
     tDOUBLE       dbValue;
+} ATTR_PACK(2);
+
+
+//Time zone description
+struct sP7Tel_Utc_Offs_V2
+{
+    union
+    {
+        sP7Ext_Header sCommon;
+        sP7Ext_Raw    sCommonRaw;
+    };
+    tINT32       iUtcOffsetSec; 
 } ATTR_PACK(2);
 
 

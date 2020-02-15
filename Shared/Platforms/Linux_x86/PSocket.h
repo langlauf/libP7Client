@@ -58,7 +58,7 @@ typedef addrinfo  tADDR_INFO;
 #define INVALID_SOCKET_VAL                                                  (-1)
                                                               //(INVALID_SOCKET)
 
-//#define CONNECTION_IN_PROGRESS                                     (EINPROGRESS)
+#define CONNECTION_IN_PROGRESS                                     (EINPROGRESS)
                                                               //(WSAEWOULDBLOCK)
 
 

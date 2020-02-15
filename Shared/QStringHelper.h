@@ -31,7 +31,10 @@
         XChar = (const tXCHAR*)QbAUniq.constData()
     #define QSTRING_TO_XCHAR(QStr, XChar) QSTRING_TO_XCHAR_TRANSLATE(MAKE_UNIQUE(QbA), QStr, XChar)
 #else
-    #define QSTRING_TO_XCHAR(QStr, XChar) XChar = (const tXCHAR*)QStr.utf16();
+    #define QSTRING_TO_XCHAR_TRANSLATE(QbAUniq, QStr, XChar)\
+        QString QbAUniq = QStr;\
+        XChar = (const tXCHAR*)QbAUniq.utf16()
+    #define QSTRING_TO_XCHAR(QStr, XChar) QSTRING_TO_XCHAR_TRANSLATE(MAKE_UNIQUE(QbA), QStr, XChar)
 #endif
 
 

@@ -1004,6 +1004,7 @@ CP7Trace::CP7Trace(IP7_Client         *i_pClient,
 
     memset(&m_sHeader_Info, 0, sizeof(m_sHeader_Info));
     memset(&m_sHeader_Data, 0, sizeof(m_sHeader_Data));
+    memset(&m_sHeader_Utc, 0, sizeof(m_sHeader_Utc));
     memset(m_pDesc_Array, 0, sizeof(m_pDesc_Array));
 
     m_sStatus.bConnected = TRUE;
@@ -1068,13 +1069,24 @@ CP7Trace::CP7Trace(IP7_Client         *i_pClient,
 
         GetEpochTime(&m_sHeader_Info.dwTime_Hi, &m_sHeader_Info.dwTime_Lo);
 
-        m_sHeader_Info.qwFlags = P7TRACE_INFO_FLAG_EXTENTION;
+        m_sHeader_Info.qwFlags = P7TRACE_INFO_FLAG_EXTENTION | P7TRACE_INFO_FLAG_TIME_ZONE;
 
         //Add main header to delivery chunks list
         m_pChk_Curs->dwSize = sizeof(m_sHeader_Info);
         m_pChk_Curs->pData  = &m_sHeader_Info;
         m_dwChk_Size       += m_pChk_Curs->dwSize;
 
+        m_pChk_Curs ++;
+
+        //Add utc offset information
+        INIT_EXT_HEADER(m_sHeader_Utc.sCommonRaw, EP7USER_TYPE_TRACE, EP7TRACE_TYPE_UTC_OFFS, sizeof(m_sHeader_Utc));
+        m_sHeader_Utc.iUtcOffsetSec = GetUtcOffsetSeconds();
+        
+        //Add utc header to delivery chunks list
+        m_pChk_Curs->dwSize = sizeof(m_sHeader_Utc);
+        m_pChk_Curs->pData  = &m_sHeader_Utc;
+        m_dwChk_Size       += m_pChk_Curs->dwSize;
+        
         m_pChk_Curs ++;
     }
 
@@ -1383,6 +1395,13 @@ void CP7Trace::On_Status(tUINT32 i_dwChannel, const sP7C_Status *i_pStatus)
             //Add main header to delivery chunks list
             m_pChk_Curs->dwSize = sizeof(m_sHeader_Info);
             m_pChk_Curs->pData  = &m_sHeader_Info;
+            m_dwChk_Size       += m_pChk_Curs->dwSize;
+
+            m_pChk_Curs ++;
+
+            //Add utc offset header to delivery chunks list
+            m_pChk_Curs->dwSize = sizeof(m_sHeader_Utc);
+            m_pChk_Curs->pData  = &m_sHeader_Utc;
             m_dwChk_Size       += m_pChk_Curs->dwSize;
 
             m_pChk_Curs ++;

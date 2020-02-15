@@ -191,3 +191,14 @@ static inline tUINT64 GetEpochLocalTime()
 
     return (((tUINT64)l_sFTime.dwHighDateTime) << 32ull) + (tUINT64)l_sFTime.dwLowDateTime;
 }//GetEpochTime
+
+
+////////////////////////////////////////////////////////////////////////////////
+//GetUtcOffsetSeconds
+//return UTC0 offset in seconds
+static inline tINT32 GetUtcOffsetSeconds()
+{
+    TIME_ZONE_INFORMATION l_sTZ = {};
+    GetTimeZoneInformation(&l_sTZ);
+    return (tINT32)l_sTZ.Bias * -60;
+}

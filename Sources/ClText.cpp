@@ -494,6 +494,7 @@ tBOOL CTxtChannel::Format(sP7Trace_Data *i_pData, CClTextSink::sLog &o_rLog)
     int           l_iCount    = 0;
     tUINT8       *l_pExt      = (tUINT8*)i_pData + i_pData->sCommon.dwSize - 1;
     tUINT8        l_bCount    = l_pExt[0];
+    tDOUBLE       l_dbTimeDiff= 0.0;
 
     l_pDesc = m_cDesc[i_pData->wID];
     
@@ -575,7 +576,9 @@ tBOOL CTxtChannel::Format(sP7Trace_Data *i_pData, CClTextSink::sLog &o_rLog)
         o_rLog.szModuleName = 5;
     }
 
-    UnpackLocalTime(m_qwStreamTime + ((i_pData->qwTimer - m_qwTimer_Value) * TIME_SEC_100NS) / m_qwTimer_Frequency,
+    l_dbTimeDiff = (((tDOUBLE)i_pData->qwTimer - (tDOUBLE)m_qwTimer_Value) * (tDOUBLE)TIME_SEC_100NS) / (tDOUBLE)m_qwTimer_Frequency;
+
+    UnpackLocalTime(m_qwStreamTime + (tUINT64)l_dbTimeDiff,
                     o_rLog.dwYear,
                     o_rLog.dwMonth,
                     o_rLog.dwDay,
@@ -588,8 +591,8 @@ tBOOL CTxtChannel::Format(sP7Trace_Data *i_pData, CClTextSink::sLog &o_rLog)
                    );
 
 
-    o_rLog.qwRawTime       = m_qwStreamTime + ((i_pData->qwTimer - m_qwTimer_Value) * TIME_SEC_100NS) / m_qwTimer_Frequency;
-    o_rLog.qwRawTimeOffset = ((i_pData->qwTimer - m_qwTimeLast) * TIME_SEC_100NS) / m_qwTimer_Frequency;
+    o_rLog.qwRawTime       = m_qwStreamTime + (tUINT64)l_dbTimeDiff;
+    o_rLog.qwRawTimeOffset = (tUINT64)l_dbTimeDiff;
     o_rLog.pChannel        = m_pName;
     o_rLog.qwIndex         = i_pData->dwSequence;
     o_rLog.dwId            = i_pData->wID;

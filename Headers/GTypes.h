@@ -42,6 +42,8 @@
 ////////////////////////////////////////////////////////////////////////////////
 //WINDOWS specific definitions & types
 #if defined(_WIN32) || defined(_WIN64)
+
+    #define G_OS_WINDOWS
     
     #if !defined(_WINSOCKAPI_)
         #include <winsock2.h>
@@ -64,6 +66,7 @@
 //LINUX specific definitions & types
 #elif defined(__linux__)
     #define UTF8_ENCODING
+    #define G_OS_LINUX
 
     //Text marco, allow to use char automatically
     #define TM(i_pStr)    i_pStr

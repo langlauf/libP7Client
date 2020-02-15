@@ -444,6 +444,7 @@ class CP7Trace
                       
     sP7Trace_Info      m_sHeader_Info;
     sP7Trace_Data      m_sHeader_Data;
+    sP7Trace_Utc_Offs  m_sHeader_Utc;
                       
     sP7C_Status        m_sStatus;
                       
