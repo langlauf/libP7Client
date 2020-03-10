@@ -38,7 +38,7 @@ CClNull::CClNull(tXCHAR **i_pArgs,
 //~CClNull()
 CClNull::~CClNull()
 {
-    Flush();
+    Close();
     CClient::Unshare();
 }//~CClNull()
 
@@ -107,8 +107,15 @@ tBOOL CClNull::Get_Info(sP7C_Info *o_pInfo)
 
 
 ////////////////////////////////////////////////////////////////////////////////
-//Flush
-tBOOL CClNull::Flush()
+//Close
+tBOOL CClNull::Close()
 {
     return TRUE;
+}//Close
+
+////////////////////////////////////////////////////////////////////////////////
+//Flush
+void CClNull::Flush()
+{
 }//Flush
+

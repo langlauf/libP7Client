@@ -124,7 +124,9 @@ public:
                        );
 
     tBOOL          Get_Info(sP7C_Info *o_pInfo);
-    tBOOL          Flush();
+    tBOOL          Close();
+    void           Flush();
+
 
 private:
     void  Roll();

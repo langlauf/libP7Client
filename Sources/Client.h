@@ -87,7 +87,7 @@ public:
     virtual tBOOL             Unshare();
 
     //reimplemented in childes, will be called in case of process crash
-    virtual tBOOL             Flush() = 0;
+    virtual tBOOL             Close() = 0;
                               
 protected:                    
     eClient_Status            Init_Log(tXCHAR **i_pArgs, tINT32 i_iCount);

@@ -1,9 +1,20 @@
-cmake_minimum_required(VERSION 2.8)
-project(P7_Test_Cpp)
-include_directories(./../../Headers)
-include_directories(./../../Shared)
-include_directories(./../../Shared/Platforms/Linux_x86)
+cmake_minimum_required(VERSION 3.0 FATAL_ERROR)
 
-add_executable (P7_Test Main.cpp)
-target_link_libraries (P7_Test P7 pthread dl rt)
+project(p7_tests)
+
+if(WIN32)
+elseif(UNIX)
+else()
+    message(FATAL_ERROR "${PROJECT_NAME}: Platform not supported")
+endif()
+
+aux_source_directory(${CMAKE_CURRENT_SOURCE_DIR} PROJ_SOURCES)
+add_executable(${PROJECT_NAME} ${PROJ_SOURCES})
+target_link_libraries (${PROJECT_NAME} p7)
+
+set_ide_folder(${PROJECT_NAME})
+
+install(TARGETS ${PROJECT_NAME} RUNTIME DESTINATION bin)
+ 
+
 

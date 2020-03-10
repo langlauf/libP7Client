@@ -68,6 +68,21 @@ P7_EXPORT tBOOL __cdecl P7_Client_Share(hP7_Client i_hClient, const tXCHAR *i_pN
 
 
 ////////////////////////////////////////////////////////////////////////////////
+//P7_Client_Flush
+P7_EXPORT void __cdecl P7_Client_Flush(hP7_Client i_hClient)
+{
+    IP7_Client *l_pClient = static_cast<IP7_Client *>(i_hClient);
+
+    if (!l_pClient)
+    {
+        return;
+    }
+
+    l_pClient->Flush();
+}//P7_Client_Flush
+
+
+////////////////////////////////////////////////////////////////////////////////
 //P7_Client_Add_Ref
 P7_EXPORT tINT32 __cdecl P7_Client_Add_Ref(hP7_Client i_hClient)
 {

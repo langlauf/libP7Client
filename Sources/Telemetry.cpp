@@ -26,7 +26,7 @@
 #define RESET_UNDEFINED                                           (0xFFFFFFFFUL)
 #define RESET_FLAG_HEADER                                         (0x1)
 #define RESET_FLAG_COUNTER                                        (0x2)
-#define TELEMETRY_SHARED_PREFIX                                   TM("Trc_")
+#define TELEMETRY_SHARED_PREFIX                                   TM("Tel_")
 #define TELEMETRY_ON_CONNECT_EXIT_SIGNAL                          (MEVENT_SIGNAL_0)
 
 extern "C" 
@@ -78,33 +78,46 @@ P7_EXPORT IP7_Telemetry * __cdecl P7_Create_Telemetry(IP7_Client             *i_
 
 
 ////////////////////////////////////////////////////////////////////////////////
-//P7_Get_Shared_Trace
+//P7_Get_Shared_Telemetry
 P7_EXPORT IP7_Telemetry * __cdecl P7_Get_Shared_Telemetry(const tXCHAR *i_pName)
 {
-    IP7_Telemetry *l_pReturn = NULL;
-    tUINT32        l_dwLen1  = PStrLen(TELEMETRY_SHARED_PREFIX);
-    tUINT32        l_dwLen2  = PStrLen(i_pName);
-    tXCHAR        *l_pName   = (tXCHAR *)malloc(sizeof(tXCHAR) * (l_dwLen1 + l_dwLen2 + 16));
+    IP7_Telemetry *l_pReturn  = NULL;
+    tUINT32        l_dwLen1   = PStrLen(TELEMETRY_SHARED_PREFIX);
+    tUINT32        l_dwLen2   = PStrLen(i_pName);
+    tXCHAR        *l_pName    = (tXCHAR *)malloc(sizeof(tXCHAR) * (l_dwLen1 + l_dwLen2 + 16));
+    tUINT32        l_uTimeHi  = 0;
+    tUINT32        l_uTimeLo  = 0;
+    sObjShared     l_stShared = {};
+    CShared::hSem  l_hSem     = SHARED_SEM_NULL;
+
+
+    CProc::Get_Process_Time(&l_uTimeHi, &l_uTimeLo);
 
     if (l_pName)
     {
         PStrCpy(l_pName, l_dwLen1 + l_dwLen2 + 16, TELEMETRY_SHARED_PREFIX);
         PStrCpy(l_pName + l_dwLen1, l_dwLen2 + 16, i_pName);
-        if (CShared::E_OK == CShared::Lock(l_pName, 250))
+        if (CShared::E_OK == CShared::Lock(l_pName, l_hSem, 250))
         {
-            if (CShared::Read(l_pName, (tUINT8*)&l_pReturn, sizeof(IP7_Telemetry*)))
+            if (CShared::Read(l_pName, (tUINT8*)&l_stShared, sizeof(l_stShared)))
             {
-                if (l_pReturn)
+                if (    (l_stShared.uProcTimeHi == l_uTimeHi)
+                     && (l_stShared.uProcTimeLo == l_uTimeLo)
+                   )
                 {
-                    l_pReturn->Add_Ref();
+                    l_pReturn = static_cast<IP7_Telemetry *>(l_stShared.pPointer);
+                    if (l_pReturn)
+                    {
+                        l_pReturn->Add_Ref();
+                    }
+                }
+                else
+                {
+                    CShared::UnLink(l_pName);
                 }
             }
-            else
-            {
-                l_pReturn = NULL;
-            }
 
-            CShared::UnLock(l_pName);
+            CShared::UnLock(l_hSem);
         }
 
         free(l_pName);
@@ -112,7 +125,7 @@ P7_EXPORT IP7_Telemetry * __cdecl P7_Get_Shared_Telemetry(const tXCHAR *i_pName)
     }
 
    return l_pReturn;
-}//P7_Get_Shared_Trace
+}//P7_Get_Shared_Telemetry
 
 } //extern "C"
 
@@ -140,7 +153,7 @@ CP7Tel_Counter::CP7Tel_Counter(tUINT16       i_wID,
     , m_uHash(i_uHash)
     , pTreeNext(NULL)
 {
-    size_t l_szCounter = sizeof(sP7Tel_Counter_v2) - sizeof(sP7Tel_Counter_v2::pName);
+    size_t l_szCounter = sizeof(sP7Tel_Counter_v2) - P7TELEMETRY_COUNTER_NAME_MIN_LENGTH_V2 * sizeof(tWCHAR);
     size_t l_szName    = PStrLen(i_pName) + 1;
     l_szCounter += l_szName * sizeof(tWCHAR);
 
@@ -274,6 +287,7 @@ CP7Telemetry::CP7Telemetry(IP7_Client *i_pClient, const tXCHAR *i_pName, const s
 
     if (NULL == m_pClient)
     {
+        P7_Set_Last_Error(eP7_Error_NoClient);   
         m_bInitialized = FALSE;
     }
     else
@@ -286,6 +300,7 @@ CP7Telemetry::CP7Telemetry(IP7_Client *i_pClient, const tXCHAR *i_pName, const s
     {
         if (FALSE == m_cOnConnect_Event.Init(1, EMEVENT_SINGLE_MANUAL))
         {
+            P7_Set_Last_Error(eP7_Error_OS);
             m_bInitialized = FALSE;
         }
     }
@@ -334,10 +349,14 @@ CP7Telemetry::CP7Telemetry(IP7_Client *i_pClient, const tXCHAR *i_pName, const s
     {
         m_bIs_Channel  = (ECLIENT_STATUS_OK == m_pClient->Register_Channel(this));
         m_bInitialized = m_bIs_Channel;
+
+        if (!m_bInitialized)
+        {
+            P7_Set_Last_Error(eP7_Error_NoFreeChannels);
+        }
     }
 
     m_bActive = m_bInitialized;
-
 }// CP7Telemetry
 
 
@@ -987,17 +1006,53 @@ tBOOL CP7Telemetry::Share(const tXCHAR *i_pName)
     LOCK_ENTER(m_sCS);
     if (NULL == m_hShared)
     {
-        void *l_pTrace = static_cast<IP7_Telemetry*>(this);
-
-        tUINT32 l_dwLen1 = PStrLen(TELEMETRY_SHARED_PREFIX);
-        tUINT32 l_dwLen2 = PStrLen(i_pName);
-        tXCHAR *l_pName = (tXCHAR *)malloc(sizeof(tXCHAR) * (l_dwLen1 + l_dwLen2 + 16));
+        tUINT32       l_dwLen1 = PStrLen(TELEMETRY_SHARED_PREFIX);
+        tUINT32       l_dwLen2 = PStrLen(i_pName);
+        tXCHAR       *l_pName  = (tXCHAR *)malloc(sizeof(tXCHAR) * (l_dwLen1 + l_dwLen2 + 16));
+        CShared::hSem l_hSem   = SHARED_SEM_NULL;
 
         if (l_pName)
         {
+            sObjShared l_stShared = {};
+            tUINT32    l_uTimeHi  = 0;
+            tUINT32    l_uTimeLo  = 0;
+            tBOOL      l_bCreate  = TRUE;
+
+            CProc::Get_Process_Time(&l_uTimeHi, &l_uTimeLo);
+
             PStrCpy(l_pName, l_dwLen1 + l_dwLen2 + 16, TELEMETRY_SHARED_PREFIX);
             PStrCpy(l_pName + l_dwLen1, l_dwLen2 + 16, i_pName);
-            l_bReturn = CShared::Create(&m_hShared, l_pName, (tUINT8*)&l_pTrace, sizeof(l_pTrace));
+
+            //JOURNAL_WARNING(m_pLog, TM("Shared memory {%s} registration error"), l_pName);
+            if (CShared::E_OK == CShared::Lock(l_pName, l_hSem, 250))
+            {
+                l_bCreate = FALSE; //it is already existing
+
+                if (CShared::Read(l_pName, (tUINT8*)&l_stShared, sizeof(l_stShared)))
+                {
+                    if (    (l_stShared.uProcTimeHi != l_uTimeHi)
+                         || (l_stShared.uProcTimeLo != l_uTimeLo)
+                       )
+                    {
+                        //JOURNAL_ERROR(m_pLog, TM("Shared memory timestamp error, prev. session crashed or forget to release P7 objects?"));
+                        CShared::UnLink(l_pName);
+                        l_bCreate = TRUE;
+                    }
+                }
+
+                CShared::UnLock(l_hSem);
+            }
+
+            if (l_bCreate)
+            {
+                CProc::Get_Process_Time(&l_uTimeHi, &l_uTimeLo);
+                l_stShared.pPointer    = static_cast<IP7_Telemetry*>(this);
+                l_stShared.uProcTimeHi = l_uTimeHi;
+                l_stShared.uProcTimeLo = l_uTimeLo;
+
+                l_bReturn = CShared::Create(&m_hShared, l_pName, (tUINT8*)&l_stShared, sizeof(l_stShared));
+            }
+
             free(l_pName);
             l_pName = NULL;
         }

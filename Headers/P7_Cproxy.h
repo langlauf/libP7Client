@@ -56,6 +56,8 @@
 #ifndef P7_PROXY_H
 #define P7_PROXY_H
 
+#include <stdarg.h>
+
 #ifdef __cplusplus
 extern "C" {
 #endif
@@ -117,6 +119,16 @@ typedef tBOOL (__cdecl *fnP7_Client_Share)(hP7_Client    i_hClient,
 
 
 ////////////////////////////////////////////////////////////////////////////////
+//P7_Client_Flush - function allows to flush (deliver) not  delivered/saved  P7  
+//buffers  for current client. Please do not use this function often, it may 
+//reduce performance.
+
+extern P7_EXPORT void __cdecl P7_Client_Flush(hP7_Client i_hClient);
+//dll/so function prototype
+typedef void (__cdecl *fnP7_Client_Flush)(hP7_Client i_hClient);
+
+
+////////////////////////////////////////////////////////////////////////////////
 //P7_Client_Add_Ref - increase reference counter for the client
 //See documentation for details.
 extern P7_EXPORT tINT32 __cdecl P7_Client_Add_Ref(hP7_Client i_hClient);
@@ -175,6 +187,15 @@ extern P7_EXPORT void __cdecl P7_Exceptional_Flush();
 //dll/so function prototype
 typedef void (__cdecl *fnP7_Exceptional_Flush)();
 
+
+////////////////////////////////////////////////////////////////////////////////
+//Function allows to flush (deliver) not  delivered/saved  P7  buffers  for  all
+//opened clients and related channels owned by process. Please do not use this 
+//function offten, it may reduce performance.
+extern P7_EXPORT void __cdecl P7_Flush();
+
+//dll/so function prototype
+typedef void (__cdecl *fnP7_Flush)();
 
 
 ////////////////////////////////////////////////////////////////////////////////

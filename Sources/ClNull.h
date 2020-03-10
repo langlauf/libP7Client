@@ -49,7 +49,9 @@ public:
 
     tBOOL Get_Status(sP7C_Status *o_pStatus);
     tBOOL Get_Info(sP7C_Info *o_pInfo);
-    tBOOL Flush();
+    tBOOL Close();
+    void  Flush();
+
 };
 
 

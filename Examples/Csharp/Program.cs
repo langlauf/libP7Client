@@ -54,6 +54,8 @@ namespace CSharp_Example
             //release telemetry, trace & client
             l_pTrace.Unregister_Thread();
 
+            l_pClient.Flush();
+
             l_pTel    = null;
             l_pTrace  = null;
             l_pClient = null;

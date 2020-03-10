@@ -36,6 +36,8 @@
 
 #include "PSystem.h"
 
+#include "Lock.h"
+
 #include "P7_Client.h"
 //because USER_PACKET_CHANNEL_ID_MAX_SIZE defined in "P7_Client.h".
 
@@ -63,5 +65,13 @@ protected:
     }
 };
 
+struct sObjShared
+{
+    void    *pPointer;
+    tUINT32  uProcTimeHi;
+    tUINT32  uProcTimeLo;
+};
+
+extern "C" void __cdecl P7_Set_Last_Error(eP7_Error i_eError);
 
 #endif //COMMONCLIENT_H

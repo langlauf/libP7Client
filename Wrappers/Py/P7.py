@@ -13,10 +13,7 @@ g_lClients = [];
 
 #loading library into module
 if os.name == "nt":
-    if sizeof(c_voidp) == 4:
-        g_hDll = cdll.LoadLibrary(os.environ['P7_BIN'] + "/P7x32.dll");
-    else:
-        g_hDll = cdll.LoadLibrary(os.environ['P7_BIN'] + "/P7x64.dll");
+    g_hDll = cdll.LoadLibrary(os.environ['P7_BIN'] + "/p7-shared.dll");
         
     ############################################################################
     #>>>UTF()
@@ -27,7 +24,7 @@ if os.name == "nt":
 elif os.name == "posix":
     os_charp = c_char_p;
     
-    g_hDll = cdll.LoadLibrary(os.environ['P7_BIN'] + "/libP7.so");
+    g_hDll = cdll.LoadLibrary(os.environ['P7_BIN'] + "/libp7-shared.so");
 
     ############################################################################
     #>>>UTF()
@@ -56,6 +53,10 @@ Client_Share           = g_hDll.P7_Client_Share
 Client_Share.restype   = c_uint
 Client_Share.argtypes  = [c_void_p, os_charp]
 
+#loading P7_Client_Flush function
+Client_Flush           = g_hDll.P7_Client_Flush
+Client_Flush.argtypes  = [c_void_p]
+
 #loading P7_Client_Add_Ref function
 Client_Add_Ref          = g_hDll.P7_Client_Add_Ref
 Client_Add_Ref.restype  = c_int
@@ -68,6 +69,10 @@ Client_Release.argtypes = [c_void_p]
 
 #loading P7_Exceptional_Flush function
 Exceptional_Flush       = g_hDll.P7_Exceptional_Flush
+
+#loading P7_Flush function
+Flush                   = g_hDll.P7_Flush
+
    
 ################################################################################
 #                            P7 telemetry
@@ -243,7 +248,7 @@ class Telemetry:
         l_iRes = Telemetry_Create_Counter(self.m_hHandle,
                                           i_sName,
                                           i_llMin,
-										  i_llAlarmMin,
+                                          i_llAlarmMin,
                                           i_llMax,
                                           i_llAlarmMax,
                                           i_bOn,
@@ -575,6 +580,14 @@ def Get_Trace_Channel(i_sTraceName, i_sClientName = None):
 def Exceptional_Flush_Buffers():
     Exceptional_Flush();
 #<<<Exceptional_Flush_Buffers()
+
+
+################################################################################
+#>>>Flush_Buffers()
+def Flush_Buffers():
+    Flush();
+#<<<Flush_Buffers()
+
 
 ################################################################################
 #Register_Client("MyClient","/P7.Addr=127.0.0.1");

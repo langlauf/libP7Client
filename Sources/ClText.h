@@ -261,7 +261,8 @@ public:
                        );
 
     tBOOL          Get_Info(sP7C_Info *o_pInfo);
-    tBOOL          Flush();
+    tBOOL          Close();
+    void           Flush();
 
 private:
     eClient_Status Parse_Buffer(tUINT8 *i_pBuffer, size_t  i_szBuffer);

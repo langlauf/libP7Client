@@ -62,6 +62,8 @@
 
     #define P7_EXPORT __declspec(dllexport)
 
+    #define OS_PATH_SEPARATOR TM("\\")
+
 ////////////////////////////////////////////////////////////////////////////////
 //LINUX specific definitions & types
 #elif defined(__linux__)
@@ -98,6 +100,7 @@
 
     #define P7_EXPORT __attribute__ ((visibility ("default")))
 
+    #define OS_PATH_SEPARATOR TM("/")
 #endif
 
 #ifdef _MSC_VER
@@ -112,8 +115,10 @@
     #define UNUSED_FUNC __attribute__ ((unused))
 #endif
 
-#define TRUE         1
-#define FALSE        0
+#ifndef TRUE
+	#define TRUE     1
+	#define FALSE    0
+#endif
 
 #define UNUSED_ARG(x)        (void)(x)
 

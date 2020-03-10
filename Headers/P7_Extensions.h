@@ -41,6 +41,7 @@
 
 #define P7TELEMETRY_INVALID_ID_V2                       ((tUINT16)~((tUINT16)0))
 #define P7TELEMETRY_COUNTERS_MAX_COUNT_V2               ((tUINT16)~((tUINT16)0))
+#define P7TELEMETRY_COUNTER_NAME_MIN_LENGTH_V2                               (2)
 
 
 #define P7TRACE_INFO_FLAG_BIG_ENDIAN                                    (0x0001)
@@ -413,7 +414,7 @@ struct sP7Tel_Counter_v2
     tDOUBLE  dbAlarmMin;
     tDOUBLE  dbMax;
     tDOUBLE  dbAlarmMax;
-    tWCHAR   pName[2];
+    tWCHAR   pName[P7TELEMETRY_COUNTER_NAME_MIN_LENGTH_V2];
 } ATTR_PACK(2);
 
 //telemetry counter On/Off verbosity header
