@@ -25,5 +25,4 @@ char (&GetCharArray(Type (&i_pArray)[i_szLength]))[i_szLength];
 
 #define MEMBER_SIZE(Structure, Memeber)         sizeof(((Structure*)0)->Memeber)
 
-
 #endif //LENGTH_H

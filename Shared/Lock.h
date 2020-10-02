@@ -39,7 +39,7 @@ public:
         m_pLock->Lock();
     }
 
-    ~CLock()
+    virtual ~CLock()
     {
         if (NULL == m_pLock)
         {
@@ -52,17 +52,17 @@ public:
         }
     }
 
-    void Lock()
+    inline void Lock()
     {
         LOCK_ENTER(m_hCS);
     }
 
-    tBOOL Try()
+    inline tBOOL Try()
     {
         return LOCK_TRY(m_hCS);
     }
 
-    void Unlock()
+    inline void Unlock()
     {
         LOCK_EXIT(m_hCS);
     }

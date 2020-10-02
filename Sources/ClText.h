@@ -232,6 +232,7 @@ private:
     tXCHAR            *m_pMsgCur;
     size_t             m_szMsg;
     CClTextSink       *m_pSink;
+    tBOOL              m_bSinkExternal;
 
 public:
     CClText(tXCHAR **i_pArgs, tINT32 i_iCount);

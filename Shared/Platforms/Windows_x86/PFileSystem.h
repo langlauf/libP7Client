@@ -180,7 +180,7 @@ public:
         if (i_dwDepth)
         {
             l_cSearch_Path.Set(i_pDirectory->Get());
-            l_cSearch_Path.Append(2, L"\\", i_pMask);
+            l_cSearch_Path.Append(1, L"\\*");
 
             l_hFind = FindFirstFileW(l_cSearch_Path.Get(), &l_sFind_Info);
 

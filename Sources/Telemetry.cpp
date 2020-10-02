@@ -314,11 +314,11 @@ CP7Telemetry::CP7Telemetry(IP7_Client *i_pClient, const tXCHAR *i_pName, const s
 
         if (i_pName)
         {
-            PUStrCpy(m_sHeader_Info.pName, P7TRACE_NAME_LENGTH, i_pName);
+            PUStrCpy(m_sHeader_Info.pName, P7TELEMETRY_NAME_LENGTH, i_pName);
         }
         else
         {
-            PUStrCpy(m_sHeader_Info.pName, P7TRACE_NAME_LENGTH, TM("Unknown"));
+            PUStrCpy(m_sHeader_Info.pName, P7TELEMETRY_NAME_LENGTH, TM("Unknown"));
         }
 
         if (m_sConf.qwTimestamp_Frequency)

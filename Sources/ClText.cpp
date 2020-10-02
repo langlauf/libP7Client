@@ -643,6 +643,7 @@ CClText::CClText(tXCHAR **i_pArgs, tINT32 i_iCount)
     , m_pMsgCur(NULL)
     , m_szMsg(0)
     , m_pSink(NULL)
+    , m_bSinkExternal(FALSE)
 {
     memset(m_pTxtCh, 0, sizeof(m_pTxtCh));
 
@@ -688,7 +689,10 @@ CClText::~CClText()
 
     if (m_pSink)
     {
-        delete m_pSink;
+        if (!m_bSinkExternal)
+        {
+            delete m_pSink;
+        }
         m_pSink = NULL;
     }
 
@@ -918,6 +922,21 @@ eClient_Status CClText::Init_Backend(tXCHAR **i_pArgs, tINT32 i_iCount)
         else if (0 == PStrICmp(l_pSink, CLIENT_SINK_SYSLOG))
         {
             m_pSink = static_cast<CClTextSink *>(new CClTextSyslog());
+        }
+        //WARNING: this code is dedicated only for self-testing. 
+        //         USE THIS OPTION ONLY ON YOUR OWN RISK!
+        else if (0 == PStrICmp(l_pSink, TM("ExternalSinc")))
+        {
+            l_pSink = Get_Argument_Text_Value(i_pArgs, i_iCount, (tXCHAR*)TM("/P7.ExtAddr="));
+
+            if (l_pSink)
+            {
+                tUINT64 l_qwAddr = 0;
+                PStrScan(l_pSink, TM("%llX"), &l_qwAddr);
+                void *l_pAddr = (void*)l_qwAddr;
+                m_pSink = static_cast<CClTextSink *>(l_pAddr);
+                m_bSinkExternal = TRUE;
+            }
         }
     }
 
@@ -1368,7 +1387,10 @@ tBOOL CClText::Close()
 
     if (m_pSink)
     {
-        delete m_pSink;
+        if (!m_bSinkExternal)
+        {
+            delete m_pSink;
+        }
         m_pSink = NULL;
     }
 
@@ -1563,6 +1585,13 @@ eClient_Status CClText::Parse_Packet(tUINT32 i_dwChannel,
         l_pHeader->dwSubType = GET_EXT_HEADER_SUBTYPE(l_sRaw);
         l_pHeader->dwSize    = GET_EXT_HEADER_SIZE(l_sRaw);
 
+        l_szOffset += l_pHeader->dwSize;
+
+        if (EP7USER_TYPE_TRACE != l_pHeader->dwType)
+        {
+            continue;
+        }
+
         if (l_pChannel)
         {
             if (EP7TRACE_TYPE_DATA == l_pHeader->dwSubType)
@@ -1634,8 +1663,6 @@ eClient_Status CClText::Parse_Packet(tUINT32 i_dwChannel,
                 l_eReturn = ECLIENT_STATUS_INTERNAL_ERROR;
             }
         }
-
-        l_szOffset += l_pHeader->dwSize;
     }
 
     if (l_szOffset > i_szPacket)

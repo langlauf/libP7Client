@@ -19,6 +19,8 @@
 #pragma once
 
 #include <conio.h>
+#include "AList.h"
+#include "PString.h"
 #include "IConsole.h"
 #include "RBTree.h"
 
